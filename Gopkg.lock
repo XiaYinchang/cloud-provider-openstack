@@ -47,6 +47,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:e82c0835b1a2aaf86dbbd15165337126e5db15320958298c17c5ed4faf6a3b6b"
+  name = "github.com/XiaYinchang/gen-docker-registry-secret"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8f2ed8193263fe883b4c4ea936392367aac25683"
+
+[[projects]]
+  branch = "master"
   digest = "1:d6afaeed1502aa28e80a4ed0981d570ad91b2579193404256ce672ed0a609e0d"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
@@ -1530,6 +1538,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/XiaYinchang/gen-docker-registry-secret",
     "github.com/container-storage-interface/spec/lib/go/csi",
     "github.com/golang/protobuf/ptypes",
     "github.com/gophercloud/gophercloud",
