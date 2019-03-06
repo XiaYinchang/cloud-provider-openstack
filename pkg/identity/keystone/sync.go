@@ -24,6 +24,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/XiaYinchang/gen-docker-registry-secret"
 	"gopkg.in/yaml.v2"
 	core_v1 "k8s.io/api/core/v1"
 	rbac_v1 "k8s.io/api/rbac/v1"
@@ -53,6 +54,18 @@ type syncConfig struct {
 
 	// List of project ids to exclude from syncing.
 	ProjectBlackList []string `yaml:"projects_black_list"`
+
+	// Harbor robot secret name
+	HarborRobotSecretName string `yaml:"harbor_robot_secret_name"`
+
+	// Harbor robot user name
+	HarborRobotUserName string `yaml:"harbor_robot_user_name"`
+
+	// Harbor robot user password
+	HarborRobotUserPassword string `yaml:"harbor_robot_user_password"`
+
+	// Harbor server
+	HarborServer string `yaml:"harbor_server"`
 }
 
 func (sc *syncConfig) validate() error {
@@ -158,7 +171,7 @@ func (s *Syncer) syncData(u *userInfo) error {
 	}
 
 	namespaceName := s.syncConfig.formatNamespaceName(
-		u.Extra["alpha.kubernetes.io/identity/project/id"][0],
+		u.Extra["alpha.kubernetes.io/identity/user/name"][0],
 		u.Extra["alpha.kubernetes.io/identity/project/name"][0],
 		u.Extra["alpha.kubernetes.io/identity/user/domain/id"][0],
 	)
@@ -199,6 +212,14 @@ func (s *Syncer) syncProjectData(u *userInfo, namespaceName string) error {
 		if err != nil {
 			klog.Warningf("Cannot create a namespace for the user: %v", err)
 			return errors.New("Internal server error")
+		}
+		harborRobotSecret, err := gendockerregistrysecrettool.StructuredGenerate(s.syncConfig.HarborRobotSecretName, s.syncConfig.HarborRobotUserName, s.syncConfig.HarborRobotUserPassword, s.syncConfig.HarborServer)
+		if err != nil {
+			klog.Errorf("Generate docker registry secret data struct: %v", err)
+		}
+		harborRobotSecret, err = s.k8sClient.CoreV1().Secrets(namespaceName).Create(harborRobotSecret)
+		if err != nil {
+			klog.Errorf("Create docker registry secret: %v", err)
 		}
 	} else if err != nil {
 		// Some other error.

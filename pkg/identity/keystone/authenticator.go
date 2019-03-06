@@ -104,6 +104,7 @@ func (a *Authenticator) AuthenticateToken(token string) (user.Info, bool, error)
 		"alpha.kubernetes.io/identity/project/name":     {obj.Token.Project.Name},
 		"alpha.kubernetes.io/identity/user/domain/id":   {obj.Token.User.Domain.ID},
 		"alpha.kubernetes.io/identity/user/domain/name": {obj.Token.User.Domain.Name},
+		"alpha.kubernetes.io/identity/user/name":        {obj.Token.User.Name},
 	}
 
 	authenticatedUser := &user.DefaultInfo{
