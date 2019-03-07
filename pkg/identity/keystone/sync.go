@@ -17,9 +17,12 @@ limitations under the License.
 package keystone
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/evanphx/json-patch"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/types"
 	"regexp"
 	"strings"
 	"sync"
@@ -220,6 +223,25 @@ func (s *Syncer) syncProjectData(u *userInfo, namespaceName string) error {
 		harborRobotSecret, err = s.k8sClient.CoreV1().Secrets(namespaceName).Create(harborRobotSecret)
 		if err != nil {
 			klog.Errorf("Create docker registry secret: %v", err)
+		}
+		originServiceAccount, err := s.k8sClient.CoreV1().ServiceAccounts(namespaceName).Get("default", metav1.GetOptions{})
+		if err != nil {
+			klog.Errorf("Get default service account: %v", err)
+		}
+		originServiceAccountJson, err := json.Marshal(*originServiceAccount)
+		newServiceAccount := &core_v1.ServiceAccount{}
+		newServiceAccount.Namespace = originServiceAccount.Namespace
+		newServiceAccount.Name = originServiceAccount.Name
+		newServiceAccount.Secrets = originServiceAccount.Secrets
+		newServiceAccount.ImagePullSecrets = []core_v1.LocalObjectReference{
+			{Name: harborRobotSecret.Name,},
+		}
+		newServiceAccount.AutomountServiceAccountToken = originServiceAccount.AutomountServiceAccountToken
+		newServiceAccountJson, err := json.Marshal(*newServiceAccount)
+		patch, err := jsonpatch.CreateMergePatch(originServiceAccountJson, newServiceAccountJson)
+		_, err = s.k8sClient.CoreV1().ServiceAccounts(namespaceName).Patch("default", types.MergePatchType, patch)
+		if err != nil {
+			klog.Errorf("Patch default service account: %v", err)
 		}
 	} else if err != nil {
 		// Some other error.
