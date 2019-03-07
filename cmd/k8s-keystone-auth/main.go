@@ -23,7 +23,7 @@ import (
 
 	kflag "k8s.io/apiserver/pkg/util/flag"
 	"k8s.io/apiserver/pkg/util/logs"
-	"github.com/XiaYinchang/cloud-provider-openstack/pkg/identity/keystone"
+	"k8s.io/cloud-provider-openstack/pkg/identity/keystone"
 )
 
 func main() {
